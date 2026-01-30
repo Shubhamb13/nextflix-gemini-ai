@@ -86,4 +86,4 @@ This project was built as part of my learning and upskilling journey in modern f
 ### Clone the repository
 ```bash
 git clone https://github.com/USERNAME/Nextlix_gemini.git
->>>>>>> 609e5fc9ab21a1fe0325aa6efabe59e24fb8fc93
+
