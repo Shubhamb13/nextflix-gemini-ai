@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { options } from "../utils/constans";
 import { useDispatch, useSelector } from "react-redux";
-import { addUpcomingMovies } from "../utils/moviesslice";
+import { addUpcomingMovies } from "../utils/moviesSlice";
 
 const useUpcomingmovies = () => {
   const dispatch = useDispatch();
