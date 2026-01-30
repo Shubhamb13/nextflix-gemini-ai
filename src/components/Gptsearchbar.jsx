@@ -1,21 +1,25 @@
 import { useDispatch, useSelector } from "react-redux";
-import lang from "../utils/lang";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { GoogleGenAI } from "@google/genai";
+
+import lang from "../utils/lang";
 import { Gemini_Api_Key, options } from "../utils/constans";
 import { addGptMoviesResult, startLoading } from "../utils/gptSlice";
 
 const Gptsearchbar = () => {
   const Language = useSelector((store) => store.lang.lang);
-  const SearcValue = useRef(null);
   const dispatch = useDispatch();
+  const SearcValue = useRef(null);
 
+  const [error, setError] = useState("");
+
+  // 🔹 Fetch movies from TMDB
   const MovieList = async (movie) => {
     const data = await fetch(
       "https://api.themoviedb.org/3/search/movie?query=" +
         movie +
         "&include_adult=false&language=en-US&page=1",
-      options
+      options,
     );
     const json = await data.json();
     return json.results;
@@ -23,39 +27,56 @@ const Gptsearchbar = () => {
 
   const handleClick = async () => {
     dispatch(startLoading());
+    setError("");
 
     const searchText = SearcValue.current.value.trim();
     if (!searchText) return;
 
-    const query = `
+    try {
+      const query = `
 Act as a movie recommendation system.
 Suggest 5 movies for this query: ${searchText}.
 Only return movie names, comma separated.
 `;
 
-    const ai = new GoogleGenAI({ apiKey: Gemini_Api_Key });
+      const ai = new GoogleGenAI({
+        apiKey: Gemini_Api_Key,
+      });
 
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: query,
-    });
+      const response = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: query,
+      });
 
-    const Recommended_Movies = response.text
-      .split(",")
-      .map((movie) => movie.trim());
+      const Recommended_Movies = response.text
+        .split(",")
+        .map((movie) => movie.trim());
 
-    const tmdb_results = await Promise.all(
-      Recommended_Movies.map((movie) => MovieList(movie))
-    );
+      const tmdb_results = await Promise.all(
+        Recommended_Movies.map((movie) => MovieList(movie)),
+      );
 
-    dispatch(
-      addGptMoviesResult({
-        MoviesNames: Recommended_Movies,
-        gptResults: tmdb_results,
-      })
-    );
+      dispatch(
+        addGptMoviesResult({
+          MoviesNames: Recommended_Movies,
+          gptResults: tmdb_results,
+        }),
+      );
 
-    SearcValue.current.value = "";
+      SearcValue.current.value = "";
+    } catch (err) {
+      console.error("Gemini API Error:", err);
+
+      
+      if (
+        err?.message?.toLowerCase().includes("quota") ||
+        err?.message?.includes("429")
+      ) {
+        setError("⚠️ AI request limit reached. Please try again later.");
+      } else {
+        setError("❌ Something went wrong. Please try again.");
+      }
+    }
   };
 
   return (
@@ -81,6 +102,11 @@ Only return movie names, comma separated.
         <p className="text-gray-400 text-center text-xs sm:text-sm mb-5 sm:mb-6">
           {lang[Language].subtitle}
         </p>
+
+        {/* Error Message */}
+        {error && (
+          <p className="text-red-400 text-center text-sm mb-4">{error}</p>
+        )}
 
         {/* Search Form */}
         <form

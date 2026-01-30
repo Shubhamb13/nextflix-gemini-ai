@@ -29,10 +29,7 @@ const Videobackground = ({ movie_id }) => {
           -translate-x-1/2 -translate-y-1/2
 
           w-[170vw] h-[170vh]
-          sm:w-[150vw] sm:h-[150vh]
-          md:w-[130vw] md:h-[130vh]
-          lg:w-[115vw] lg:h-[115vh]
-          xl:w-[110vw] xl:h-[110vh]
+          
         "
         src={`https://www.youtube.com/embed/${trailerVideo.key}?autoplay=1&mute=1&controls=0&rel=0&playsinline=1&loop=1&playlist=${trailerVideo.key}`}
         title="YouTube video player"
